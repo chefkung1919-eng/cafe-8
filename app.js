@@ -1,10 +1,11 @@
 // --- นำ URL และ Anon Key จาก Supabase มาใส่ตรงนี้ ---
-const SUPABASE_URL = 'https://tyvbsgonfticxuaggzgb.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_h7xzTQetePBWjlSGwtxzcg_T-rgrlIv';
-window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const supabase = window.supabaseClient;
+const SUPABASE_URL = 'https://ugghuylxujbngpntfvyq.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_h7xzTQetePBWjlSGwtxzcg_T-rgrlIv'; // คีย์ยาวๆ ของคุณ
 
-// ข้อมูลจำลองสินค้า
+// แก้ไขปัญหาการประกาศตัวแปรซ้ำซ้อนกับระบบ Global SDK
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ข้อมูลสินค้าภายในร้าน POS
 const products = [
     { id: 1, name: 'Espresso', price: 50, type: 'coffee' },
     { id: 2, name: 'Americano', price: 55, type: 'coffee' },
@@ -23,7 +24,7 @@ let currentPoints = 0;
 window.onload = async () => {
     checkTheme();
     renderProducts();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
         currentUser = session.user;
         showDashboard();
@@ -35,18 +36,25 @@ async function register() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const msg = document.getElementById('auth-msg');
+    msg.innerText = "กำลังประมวลผล...";
     
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) msg.innerText = "Error: " + error.message;
-    else msg.innerText = "สมัครสำเร็จ! กรุณายืนยันอีเมล หรือล็อคอินได้เลย (ถ้าปิด Confirm email ไว้)";
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) {
+        msg.innerText = "Error: " + error.message;
+    } else {
+        msg.innerText = "สมัครสำเร็จ! กำลังเข้าสู่ระบบ...";
+        // ล็อกอินให้อัตโนมัติหลังสมัครเสร็จ
+        setTimeout(() => { login(); }, 1000);
+    }
 }
 
 async function login() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const msg = document.getElementById('auth-msg');
+    msg.innerText = "กำลังเข้าสู่ระบบ...";
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) {
         msg.innerText = "Error: " + error.message;
     } else {
@@ -56,7 +64,7 @@ async function login() {
 }
 
 async function logout() {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     currentUser = null;
     document.getElementById('dashboard-section').classList.remove('active');
     document.getElementById('dashboard-section').classList.add('hidden');
@@ -64,6 +72,7 @@ async function logout() {
     document.getElementById('login-section').classList.add('active');
     cart = [];
     updateCart();
+    document.getElementById('auth-msg').innerText = "";
 }
 
 async function showDashboard() {
@@ -77,7 +86,7 @@ async function showDashboard() {
 }
 
 async function fetchPoints() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
         .from('profiles')
         .select('points')
         .eq('id', currentUser.id)
@@ -87,7 +96,7 @@ async function fetchPoints() {
         currentPoints = data.points;
     } else if (error && error.code === 'PGRST116') {
         // ถ้าไม่มีข้อมูล ให้สร้างใหม่
-        await supabase.from('profiles').insert([{ id: currentUser.id, points: 0 }]);
+        await supabaseClient.from('profiles').insert([{ id: currentUser.id, points: 0 }]);
         currentPoints = 0;
     }
     document.getElementById('user-points').innerText = `แต้มสะสม: ${currentPoints}`;
@@ -97,6 +106,11 @@ async function fetchPoints() {
 function renderProducts() {
     const coffeeList = document.getElementById('coffee-list');
     const bakeryList = document.getElementById('bakery-list');
+    
+    if(!coffeeList || !bakeryList) return;
+    
+    coffeeList.innerHTML = '';
+    bakeryList.innerHTML = '';
 
     products.forEach(p => {
         const div = document.createElement('div');
@@ -122,12 +136,11 @@ function updateCart() {
     cart.forEach((item, index) => {
         total += item.price;
         const li = document.createElement('li');
-        li.innerHTML = `<span>${item.name}</span> <span>${item.price} ฿ <button style="padding:2px 5px; margin-left:10px" onclick="removeFromCart(${index})">X</button></span>`;
+        li.innerHTML = `<span>${item.name}</span> <span>${item.price} ฿ <button style="padding:2px 5px; margin-left:10px; background:#dc3545;" onclick="removeFromCart(${index})">X</button></span>`;
         ul.appendChild(li);
     });
 
     document.getElementById('total-price').innerText = total;
-    // คำนวณแต้ม: ทุกๆ 50 บาท ได้ 1 แต้ม
     const earn = Math.floor(total / 50);
     document.getElementById('earn-points').innerText = earn;
     
@@ -142,11 +155,9 @@ function removeFromCart(index) {
 async function checkout() {
     const total = cart.reduce((sum, item) => sum + item.price, 0);
     const earnedPoints = Math.floor(total / 50);
-
     const newTotalPoints = currentPoints + earnedPoints;
 
-    // อัปเดตแต้มใน Supabase
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from('profiles')
         .update({ points: newTotalPoints })
         .eq('id', currentUser.id);
@@ -155,9 +166,9 @@ async function checkout() {
         alert(`ชำระเงินสำเร็จ! ยอดรวม ${total} บาท\nคุณได้รับ ${earnedPoints} แต้ม`);
         cart = [];
         updateCart();
-        fetchPoints(); // โหลดแต้มใหม่
+        fetchPoints();
     } else {
-        alert('เกิดข้อผิดพลาดในการบันทึกแต้ม');
+        alert('เกิดข้อผิดพลาดในการบันทึกแต้ม: ' + error.message);
     }
 }
 
