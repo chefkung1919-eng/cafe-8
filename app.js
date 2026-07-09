@@ -1,5 +1,5 @@
 // --- นำ URL และ Anon Key จาก Supabase มาใส่ตรงนี้ ---
-const SUPABASE_URL = 'https://tyvbsgonfticxuaggzgb.supabase.co/rest/v1/';
+const SUPABASE_URL = 'https://tyvbsgonfticxuaggzgb.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5dmJzZ29uZnRpY3h1YWdnemdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NjgwMTgsImV4cCI6MjA5OTE0NDAxOH0.IZWsX-ChzMrhMvsnSp3AdglRNfZQoYctzw5NhBLg-VM'; // คีย์ยาวๆ ของคุณ
 
 // แก้ไขปัญหาการประกาศตัวแปรซ้ำซ้อนกับระบบ Global SDK
