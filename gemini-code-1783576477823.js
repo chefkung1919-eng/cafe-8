@@ -1,6 +1,6 @@
 // --- นำ URL และ Anon Key จาก Supabase มาใส่ตรงนี้ ---
-const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const SUPABASE_URL = 'https://qttfnvzwhxmkfpdmzjyd.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_d0qAfaADFt420JeLG26pGQ_b5JB7CoF';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ข้อมูลจำลองสินค้า
