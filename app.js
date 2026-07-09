@@ -1,8 +1,9 @@
 // --- นำ URL และ Anon Key จาก Supabase มาใส่ตรงนี้ ---
 const SUPABASE_URL = 'https://tyvbsgonfticxuaggzgb.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5dmJzZ29uZnRpY3h1YWdnemdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NjgwMTgsImV4cCI6MjA5OTE0NDAxOH0.IZWsX-ChzMrhMvsnSp3AdglRNfZQoYctzw5NhBLg-VM'; // คีย์ยาวๆ ของคุณ
+// ⚠️ อย่าลืมเอาคีย์ยาวๆ ของคุณ (anon public) มาใส่แทนที่คำว่า 'YOUR_ANON_KEY' ตรงนี้ด้วยนะครับ!
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5dmJzZ29uZnRpY3h1YWdnemdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NjgwMTgsImV4cCI6MjA5OTE0NDAxOH0.IZWsX-ChzMrhMvsnSp3AdglRNfZQoYctzw5NhBLg-VM'; 
 
-// แก้ไขปัญหาการประกาศตัวแปรซ้ำซ้อนกับระบบ Global SDK
+// แก้ไขปัญหาการประกาศตัวแปรซ้ำซ้อนกับระบบ Global SDK เรียบร้อยแล้ว
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ข้อมูลสินค้าภายในร้าน POS
@@ -43,7 +44,6 @@ async function register() {
         msg.innerText = "Error: " + error.message;
     } else {
         msg.innerText = "สมัครสำเร็จ! กำลังเข้าสู่ระบบ...";
-        // ล็อกอินให้อัตโนมัติหลังสมัครเสร็จ
         setTimeout(() => { login(); }, 1000);
     }
 }
@@ -81,7 +81,6 @@ async function showDashboard() {
     document.getElementById('dashboard-section').classList.remove('hidden');
     document.getElementById('dashboard-section').classList.add('active');
     
-    // ดึงแต้มสะสม
     await fetchPoints();
 }
 
@@ -95,7 +94,6 @@ async function fetchPoints() {
     if (data) {
         currentPoints = data.points;
     } else if (error && error.code === 'PGRST116') {
-        // ถ้าไม่มีข้อมูล ให้สร้างใหม่
         await supabaseClient.from('profiles').insert([{ id: currentUser.id, points: 0 }]);
         currentPoints = 0;
     }
@@ -136,7 +134,7 @@ function updateCart() {
     cart.forEach((item, index) => {
         total += item.price;
         const li = document.createElement('li');
-        li.innerHTML = `<span>${item.name}</span> <span>${item.price} ฿ <button style="padding:2px 5px; margin-left:10px; background:#dc3545;" onclick="removeFromCart(${index})">X</button></span>`;
+        li.innerHTML = `<span>${item.name}</span> <span>${item.price} ฿ <button style="padding:2px 5px; margin-left:10px; background:#dc3545; color:white; border:none; border-radius:3px;" onclick="removeFromCart(${index})">X</button></span>`;
         ul.appendChild(li);
     });
 
